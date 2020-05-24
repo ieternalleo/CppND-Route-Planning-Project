@@ -10,13 +10,11 @@ RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, floa
 
     // TODO 2: Use the m_Model.FindClosestNode method to find the closest nodes to the starting and ending coordinates.
     // Store the nodes you find in the RoutePlanner's start_node and end_node attributes.
+    //Initialize start_node
     this->start_node = &m_Model.FindClosestNode(start_x,start_y);
-    this->end_node = &m_Model.FindClosestNode(end_x, end_y);
-
-    this->open_list.push_back(start_node);
-    this->start_node->visited = true;
     this->start_node->g_value = 0;
-    this->start_node->h_value = this->CalculateHValue(this->start_node);
+    this->start_node->h_value = 0;
+    this->end_node = &m_Model.FindClosestNode(end_x, end_y);
 }
 
 
@@ -47,7 +45,6 @@ void RoutePlanner::AddNeighbors(RouteModel::Node *current_node) {
             neighbors[idx]->parent = current_node;
             neighbors[idx]->g_value = current_node->g_value + current_node->distance(*neighbors[idx]);
             neighbors[idx]->h_value = CalculateHValue(neighbors[idx]);
-            if (idx < 4 && current_node == start_node) std::cout << "Neighbors g-value" << neighbors[idx]->g_value << std::endl;
             this->open_list.push_back(neighbors[idx]);
 
             neighbors[idx]->visited = true;
@@ -126,15 +123,15 @@ void RoutePlanner::AStarSearch() {
     RouteModel::Node *current_node = nullptr;
 
     // TODO: Implement your solution here.
-
     current_node = this->start_node;
+
+    open_list.push_back(current_node);
     while ( !open_list.empty()){
         
         AddNeighbors(current_node);
         current_node = NextNode();
 
-        if (current_node->x == end_node->x &&
-            current_node->y == end_node->y) {
+        if (CalculateHValue(current_node) == 0) {
             this->m_Model.path = ConstructFinalPath(current_node);
             return;
         }
